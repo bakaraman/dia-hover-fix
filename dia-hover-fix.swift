@@ -8,7 +8,9 @@
 // window from another process under the cursor for 150 ms did.
 //
 // While Dia is the active app, this polls Dia's large on-screen windows four times a second. When
-// their layout changes and settles with the cursor over Dia, it shows that window twice, 1 s apart.
+// their sizes change and settle with the cursor over Dia, it shows that window twice, 1 s apart.
+// Sizes only: entering and leaving fullscreen change them, moving a window or swiping between
+// Spaces does not.
 // It needs no permissions: window bounds, cursor position and button state are all public.
 //
 // Build: swiftc -O -swift-version 5 -o dia-hover-fix dia-hover-fix.swift
@@ -102,12 +104,12 @@ final class HoverFixer {
     private func poll() {
         let windows = diaLargeWindows()
         let layout = windows
-            .map { "\(Int($0.width))x\(Int($0.height))@\(Int($0.minX)),\(Int($0.minY))" }
+            .map { "\(Int($0.width))x\(Int($0.height))" }
             .sorted()
             .joined(separator: " ")
         if layout == candidate { candidateCount += 1 } else { candidate = layout; candidateCount = 1 }
 
-        // A layout counts once it has held for two polls, and only between two on-screen layouts.
+        // A set of sizes counts once it has held for two polls, and only between two on-screen sets.
         if candidateCount == 2 && layout != settled {
             let previous = settled
             settled = layout
